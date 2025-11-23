@@ -2,6 +2,7 @@ import React from 'react';
 import Sidebar from './Sidebar';
 import LogoIcon from '../Shared/LogoIcon';
 import { Outlet, useLocation } from 'react-router-dom';
+import { Users } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
 
