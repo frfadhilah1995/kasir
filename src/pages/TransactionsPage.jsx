@@ -4,7 +4,7 @@ import { useDatabase } from '../context/DatabaseContext';
 import Footer from '../components/Shared/Footer';
 
 const TransactionsPage = () => {
-    const { transactions } = useDatabase();
+    const { transactions, voidTransaction } = useDatabase();
     const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
 
     return (
@@ -32,20 +32,40 @@ const TransactionsPage = () => {
                                     <th className="p-4 text-sm font-semibold text-slate-600">Customer</th>
                                     <th className="p-4 text-sm font-semibold text-slate-600">Status</th>
                                     <th className="p-4 text-sm font-semibold text-slate-600 text-right">Amount</th>
+                                    <th className="p-4 text-sm font-semibold text-slate-600 text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                                 {transactions.map((t, idx) => (
-                                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                                    <tr key={idx} className={`hover:bg-slate-50 transition-colors ${t.status === 'Void' ? 'opacity-50 bg-slate-50' : ''}`}>
                                         <td className="p-4 text-sm font-bold text-slate-700">{t.id}</td>
                                         <td className="p-4 text-sm text-slate-500">{t.date}</td>
                                         <td className="p-4 text-sm text-slate-800">{t.customer}</td>
                                         <td className="p-4">
-                                            <span className={`text-xs px-2 py-1 rounded-full font-semibold ${t.status === 'Success' ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}`}>
+                                            <span className={`text-xs px-2 py-1 rounded-full font-semibold ${t.status === 'Success' ? 'bg-green-100 text-green-600' :
+                                                t.status === 'Void' ? 'bg-red-100 text-red-600 line-through' :
+                                                    'bg-amber-100 text-amber-600'
+                                                }`}>
                                                 {t.status}
                                             </span>
                                         </td>
-                                        <td className="p-4 text-sm font-bold text-[#0f2942] text-right">{formatCurrency(t.total)}</td>
+                                        <td className={`p-4 text-sm font-bold text-right ${t.status === 'Void' ? 'text-slate-400 line-through' : 'text-[#0f2942]'}`}>
+                                            {formatCurrency(t.total)}
+                                        </td>
+                                        <td className="p-4 text-center">
+                                            {t.status !== 'Void' && (
+                                                <button
+                                                    onClick={() => {
+                                                        if (confirm('Are you sure you want to VOID this transaction? This will reverse the sales.')) {
+                                                            voidTransaction(t.id, 'Admin');
+                                                        }
+                                                    }}
+                                                    className="text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded-lg transition-colors"
+                                                >
+                                                    VOID
+                                                </button>
+                                            )}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

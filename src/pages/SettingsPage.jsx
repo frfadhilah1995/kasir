@@ -4,7 +4,7 @@ import { useDatabase } from '../context/DatabaseContext';
 import Footer from '../components/Shared/Footer';
 
 const SettingsPage = () => {
-    const { settings, updateSettings } = useDatabase();
+    const { settings, updateSettings, exportData, importData } = useDatabase();
     const [formData, setFormData] = React.useState(settings);
     const [saved, setSaved] = React.useState(false);
 
@@ -76,6 +76,50 @@ const SettingsPage = () => {
                             </button>
 
                             <div className="pt-6 border-t border-slate-100">
+                                <h3 className="text-lg font-bold text-[#0f2942] mb-4">Data Management</h3>
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <button
+                                        onClick={() => {
+                                            const data = exportData();
+                                            const blob = new Blob([data], { type: 'application/json' });
+                                            const url = URL.createObjectURL(blob);
+                                            const a = document.createElement('a');
+                                            a.href = url;
+                                            a.download = `mitra_cuan_backup_${new Date().toISOString().slice(0, 10)}.json`;
+                                            a.click();
+                                        }}
+                                        className="flex items-center justify-center gap-2 py-3 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl font-bold hover:bg-blue-100 transition-colors"
+                                    >
+                                        <Save size={18} /> Backup Data
+                                    </button>
+                                    <div className="relative">
+                                        <input
+                                            type="file"
+                                            accept=".json"
+                                            onChange={(e) => {
+                                                const file = e.target.files[0];
+                                                if (file) {
+                                                    const reader = new FileReader();
+                                                    reader.onload = (event) => {
+                                                        const result = importData(event.target.result);
+                                                        if (result.success) {
+                                                            alert('Data restored successfully!');
+                                                            window.location.reload();
+                                                        } else {
+                                                            alert(result.message);
+                                                        }
+                                                    };
+                                                    reader.readAsText(file);
+                                                }
+                                            }}
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        />
+                                        <button className="flex items-center justify-center gap-2 w-full py-3 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl font-bold hover:bg-amber-100 transition-colors">
+                                            <Save size={18} className="rotate-180" /> Restore Data
+                                        </button>
+                                    </div>
+                                </div>
+
                                 <h3 className="text-lg font-bold text-red-600 mb-2">Danger Zone</h3>
                                 <p className="text-sm text-slate-500 mb-4">Clear all data (Products, Transactions, Customers) and reset to empty state.</p>
                                 <button
