@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { hashPassword, getSecureStorage, setSecureStorage } from '../utils/security';
 
 const AuthContext = createContext();
 
@@ -6,41 +7,54 @@ const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-    // Default Admin User
+    // Default Admin User with Hashed Password
+    // Password is 'admin123'
     const defaultAdmin = {
         id: 1,
         username: 'admin',
-        password: 'admin123', // In a real app, this should be hashed
+        password: hashPassword('admin123'),
         role: 'owner',
         name: 'Store Owner'
     };
 
-    // Load users from localStorage or use default
+    // Load users from secure storage
     const [users, setUsers] = useState(() => {
-        const saved = localStorage.getItem('db_users');
-        return saved ? JSON.parse(saved) : [defaultAdmin];
+        const saved = getSecureStorage('db_users_secure', null);
+        // If no secure data, check for old insecure data to migrate (optional, but good for UX)
+        if (!saved) {
+            const oldData = localStorage.getItem('db_users');
+            if (oldData) {
+                // We could migrate, but for security let's start fresh or use default
+                // To be safe and secure, we default to admin
+                return [defaultAdmin];
+            }
+            return [defaultAdmin];
+        }
+        return saved;
     });
 
     // Current logged in user
     const [user, setUser] = useState(() => {
-        const saved = localStorage.getItem('active_user');
-        return saved ? JSON.parse(saved) : null;
+        return getSecureStorage('active_user_secure', null);
     });
 
     useEffect(() => {
-        localStorage.setItem('db_users', JSON.stringify(users));
+        setSecureStorage('db_users_secure', users);
     }, [users]);
 
     useEffect(() => {
         if (user) {
-            localStorage.setItem('active_user', JSON.stringify(user));
+            setSecureStorage('active_user_secure', user);
         } else {
-            localStorage.removeItem('active_user');
+            localStorage.removeItem('active_user_secure');
         }
     }, [user]);
 
     const login = (username, password) => {
-        const foundUser = users.find(u => u.username === username && u.password === password);
+        // Hash input password to compare
+        const hashedPassword = hashPassword(password);
+        const foundUser = users.find(u => u.username === username && u.password === hashedPassword);
+
         if (foundUser) {
             setUser(foundUser);
             return { success: true };
@@ -66,7 +80,14 @@ export const AuthProvider = ({ children }) => {
             }
         }
 
-        setUsers(prev => [...prev, { ...newUser, id: Date.now() }]);
+        // Hash password before saving
+        const userToSave = {
+            ...newUser,
+            id: Date.now(),
+            password: hashPassword(newUser.password)
+        };
+
+        setUsers(prev => [...prev, userToSave]);
         return { success: true };
     };
 
@@ -85,11 +106,17 @@ export const AuthProvider = ({ children }) => {
             }
         }
 
-        setUsers(prev => prev.map(u => u.id === id ? { ...u, ...updatedData } : u));
+        // Handle password update if present
+        let dataToUpdate = { ...updatedData };
+        if (dataToUpdate.password) {
+            dataToUpdate.password = hashPassword(dataToUpdate.password);
+        }
+
+        setUsers(prev => prev.map(u => u.id === id ? { ...u, ...dataToUpdate } : u));
 
         // Update current user session if it's the same user
         if (user && user.id === id) {
-            setUser(prev => ({ ...prev, ...updatedData }));
+            setUser(prev => ({ ...prev, ...dataToUpdate }));
         }
         return { success: true };
     };

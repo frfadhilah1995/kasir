@@ -1,37 +1,36 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getSecureStorage, setSecureStorage } from '../utils/security';
 
 const DatabaseContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useDatabase = () => useContext(DatabaseContext);
 
 export const DatabaseProvider = ({ children }) => {
     // --- STATE ---
     const [products, setProducts] = useState(() => {
-        const saved = localStorage.getItem('db_products');
-        return saved ? JSON.parse(saved) : [];
+        return getSecureStorage('db_products_secure', []);
     });
 
     const [transactions, setTransactions] = useState(() => {
-        const saved = localStorage.getItem('db_transactions');
-        return saved ? JSON.parse(saved) : [];
+        return getSecureStorage('db_transactions_secure', []);
     });
 
     const [customers, setCustomers] = useState(() => {
-        const saved = localStorage.getItem('db_customers');
-        return saved ? JSON.parse(saved) : [];
+        return getSecureStorage('db_customers_secure', []);
     });
 
     // --- PERSISTENCE ---
     useEffect(() => {
-        localStorage.setItem('db_products', JSON.stringify(products));
+        setSecureStorage('db_products_secure', products);
     }, [products]);
 
     useEffect(() => {
-        localStorage.setItem('db_transactions', JSON.stringify(transactions));
+        setSecureStorage('db_transactions_secure', transactions);
     }, [transactions]);
 
     useEffect(() => {
-        localStorage.setItem('db_customers', JSON.stringify(customers));
+        setSecureStorage('db_customers_secure', customers);
     }, [customers]);
 
     // --- ACTIONS ---
@@ -74,17 +73,16 @@ export const DatabaseProvider = ({ children }) => {
     };
 
     const [settings, setSettings] = useState(() => {
-        const saved = localStorage.getItem('db_settings');
-        return saved ? JSON.parse(saved) : {
+        return getSecureStorage('db_settings_secure', {
             storeName: 'Mitra Cuan Store',
             taxRate: 11,
             currency: 'IDR (Rp)',
             address: 'Jalan Teknologi No. 123, Jakarta Selatan'
-        };
+        });
     });
 
     useEffect(() => {
-        localStorage.setItem('db_settings', JSON.stringify(settings));
+        setSecureStorage('db_settings_secure', settings);
     }, [settings]);
 
     const updateSettings = (newSettings) => {
@@ -92,12 +90,11 @@ export const DatabaseProvider = ({ children }) => {
     };
 
     const [categories, setCategories] = useState(() => {
-        const saved = localStorage.getItem('db_categories');
-        return saved ? JSON.parse(saved) : ["Food", "Fashion", "Accessories", "Electronics", "Other"];
+        return getSecureStorage('db_categories_secure', ["Food", "Fashion", "Accessories", "Electronics", "Other"]);
     });
 
     useEffect(() => {
-        localStorage.setItem('db_categories', JSON.stringify(categories));
+        setSecureStorage('db_categories_secure', categories);
     }, [categories]);
 
     const addCategory = (category) => {
