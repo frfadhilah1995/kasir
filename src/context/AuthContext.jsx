@@ -40,6 +40,8 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         setSecureStorage('db_users_secure', users);
+        // Cleanup legacy insecure data
+        localStorage.removeItem('db_users');
     }, [users]);
 
     useEffect(() => {
@@ -48,6 +50,8 @@ export const AuthProvider = ({ children }) => {
         } else {
             localStorage.removeItem('active_user_secure');
         }
+        // Cleanup legacy insecure data
+        localStorage.removeItem('active_user');
     }, [user]);
 
     const login = (username, password) => {

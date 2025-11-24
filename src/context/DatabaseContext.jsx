@@ -23,14 +23,17 @@ export const DatabaseProvider = ({ children }) => {
     // --- PERSISTENCE ---
     useEffect(() => {
         setSecureStorage('db_products_secure', products);
+        localStorage.removeItem('db_products'); // Cleanup legacy
     }, [products]);
 
     useEffect(() => {
         setSecureStorage('db_transactions_secure', transactions);
+        localStorage.removeItem('db_transactions'); // Cleanup legacy
     }, [transactions]);
 
     useEffect(() => {
         setSecureStorage('db_customers_secure', customers);
+        localStorage.removeItem('db_customers'); // Cleanup legacy
     }, [customers]);
 
     // --- ACTIONS ---
@@ -83,6 +86,7 @@ export const DatabaseProvider = ({ children }) => {
 
     useEffect(() => {
         setSecureStorage('db_settings_secure', settings);
+        localStorage.removeItem('db_settings'); // Cleanup legacy
     }, [settings]);
 
     const updateSettings = (newSettings) => {
@@ -95,6 +99,7 @@ export const DatabaseProvider = ({ children }) => {
 
     useEffect(() => {
         setSecureStorage('db_categories_secure', categories);
+        localStorage.removeItem('db_categories'); // Cleanup legacy
     }, [categories]);
 
     const addCategory = (category) => {
