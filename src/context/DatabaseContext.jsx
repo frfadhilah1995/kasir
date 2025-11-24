@@ -31,6 +31,11 @@ export const DatabaseProvider = ({ children }) => {
         localStorage.removeItem('db_transactions'); // Cleanup legacy
     }, [transactions]);
 
+    useEffect(() => {
+        setSecureStorage('db_customers_secure', customers);
+        localStorage.removeItem('db_customers'); // Cleanup legacy
+    }, [customers]);
+
     const [auditLogs, setAuditLogs] = useState(() => {
         return getSecureStorage('db_audit_logs_secure', []);
     });
